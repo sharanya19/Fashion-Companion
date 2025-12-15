@@ -1,0 +1,130 @@
+[
+  {
+    "name": "Anne Hathaway",
+    "expected": "Winter - True Winter",
+    "actual": "Spring - Light Spring",
+    "season_match": false,
+    "subtype_match": false,
+    "confidence": 0.95
+  },
+  {
+    "name": "Megan Fox",
+    "expected": "Winter - True Winter",
+    "actual": "Autumn - Deep Autumn",
+    "season_match": false,
+    "subtype_match": false,
+    "confidence": 0.95
+  },
+  {
+    "name": "Katy Perry",
+    "expected": "Winter - Bright Winter",
+    "actual": "Spring - Bright Spring",
+    "season_match": false,
+    "subtype_match": false,
+    "confidence": 0.95
+  },
+  {
+    "name": "Sandra Bullock",
+    "expected": "Winter - Deep Winter",
+    "actual": "Winter - Deep Winter",
+    "season_match": true,
+    "subtype_match": true,
+    "confidence": 0.95
+  },
+  {
+    "name": "Blake Lively",
+    "expected": "Spring - Light Spring",
+    "actual": "Spring - Light Spring",
+    "season_match": true,
+    "subtype_match": true,
+    "confidence": 0.95
+  },
+  {
+    "name": "Scarlett Johansson",
+    "expected": "Spring - Light Spring",
+    "actual": "Spring - Light Spring",
+    "season_match": true,
+    "subtype_match": true,
+    "confidence": 0.95
+  },
+  {
+    "name": "Emma Stone",
+    "expected": "Spring - True Spring",
+    "actual": "Spring - Light Spring",
+    "season_match": true,
+    "subtype_match": false,
+    "confidence": 0.95
+  },
+  {
+    "name": "Beyonc\u00e9",
+    "expected": "Spring - Bright Spring",
+    "actual": "Spring - True Spring",
+    "season_match": true,
+    "subtype_match": false,
+    "confidence": 0.95
+  },
+  {
+    "name": "Gwyneth Paltrow",
+    "expected": "Summer - Light Summer",
+    "actual": "Summer - Light Summer",
+    "season_match": true,
+    "subtype_match": true,
+    "confidence": 0.95
+  },
+  {
+    "name": "Emily Blunt",
+    "expected": "Summer - True Summer",
+    "actual": "Summer - Light Summer",
+    "season_match": true,
+    "subtype_match": false,
+    "confidence": 0.95
+  },
+  {
+    "name": "Sarah Jessica Parker",
+    "expected": "Summer - Soft Summer",
+    "actual": "Summer - Soft Summer",
+    "season_match": true,
+    "subtype_match": true,
+    "confidence": 0.95
+  },
+  {
+    "name": "Julia Roberts",
+    "expected": "Autumn - True Autumn",
+    "actual": "Autumn - True Autumn",
+    "season_match": true,
+    "subtype_match": true,
+    "confidence": 0.95
+  },
+  {
+    "name": "Jessica Chastain",
+    "expected": "Autumn - True Autumn",
+    "actual": "Spring - Light Spring",
+    "season_match": false,
+    "subtype_match": false,
+    "confidence": 0.95
+  },
+  {
+    "name": "Drew Barrymore",
+    "expected": "Autumn - Soft Autumn",
+    "actual": "Autumn - Soft Autumn",
+    "season_match": true,
+    "subtype_match": true,
+    "confidence": 0.95
+  },
+  {
+    "name": "Kim Kardashian",
+    "expected": "Autumn - Deep Autumn",
+    "actual": "Winter - Deep Winter",
+    "season_match": false,
+    "subtype_match": false,
+    "confidence": 0.95
+  },
+  {
+    "name": "Mindy Kaling",
+    "expected": "Autumn - Deep Autumn",
+    "actual": "Autumn - Soft Autumn",
+    "season_match": true,
+    "subtype_match": false,
+    "confidence": 0.95
+  }
+]
