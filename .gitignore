@@ -54,3 +54,5 @@ htmlcov/
 # Other
 *.bak
 .cache/
+backend/uploads/
+*.db

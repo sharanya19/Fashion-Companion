@@ -135,42 +135,81 @@ class EnhancedFeatureExtractor:
         eye_crop = image_rgb_normalized[max(0, ey-5):min(h, ey+5), max(0, ex-5):min(w, ex+5)]
         eye_l, eye_a, eye_b = self.get_dominant_color(eye_crop, k=2)
         
-        # 3. HAIR EXTRACTION (Multi-point with intelligent selection)
+        # 3. HAIR EXTRACTION (Multi-point with IMPROVED filtering)
+        # Strategy: Sample multiple regions, filter background, use BRIGHTEST valid sample
         left_point = landmarks.landmark[234]
         lx, ly = int(left_point.x * w), int(left_point.y * h)
-        left_hair = image_rgb_normalized[max(0, ly-40):min(h, ly+40), max(0, lx-60):min(w, lx-20)]
+        # Adjusted to go MORE above the landmark to avoid face
+        left_hair = image_rgb_normalized[max(0, ly-60):max(0, ly-10), max(0, lx-40):min(w, lx)]
         
         right_point = landmarks.landmark[454]
         rx, ry = int(right_point.x * w), int(right_point.y * h)
-        right_hair = image_rgb_normalized[max(0, ry-40):min(h, ry+40), min(w, rx+20):min(w, rx+60)]
+        # Adjusted to go MORE above the landmark
+        right_hair = image_rgb_normalized[max(0, ry-60):max(0, ry-10), rx:min(w, rx+40)]
         
-        # Also sample from top of head for additional data point
+        # Top of head - further up
         top_point = landmarks.landmark[10]
         tx, ty = int(top_point.x * w), int(top_point.y * h)
-        top_hair = image_rgb_normalized[max(0, ty-80):max(0, ty-20), max(0, tx-40):min(w, tx+40)]
+        top_hair = image_rgb_normalized[max(0, ty-100):max(0, ty-30), max(0, tx-30):min(w, tx+30)]
         
         hair_samples = []
-        if left_hair.size > 0 and np.mean(left_hair) > 5:
-            hair_samples.append(self.get_dominant_color(left_hair, k=3))
-        if right_hair.size > 0 and np.mean(right_hair) > 5:
-            hair_samples.append(self.get_dominant_color(right_hair, k=3))
-        if top_hair.size > 0 and np.mean(top_hair) > 5:
-            hair_samples.append(self.get_dominant_color(top_hair, k=3))
         
-        # Intelligent hair sample selection
+        # Process each region with background filtering
+        for region, name in [(left_hair, "left"), (right_hair, "right"), (top_hair, "top")]:
+            if region.size == 0:
+                continue
+            
+            # Filter out very dark pixels (shadows/background) and very light (overexposed background)
+            mean_brightness = np.mean(region)
+            if mean_brightness < 10 or mean_brightness > 250:
+                print(f"[DEBUG] Hair {name}: Rejected (too bright/dark: {mean_brightness:.1f})")
+                continue
+            
+            # Get color
+            hair_color = self.get_dominant_color(region, k=3)
+            
+            # Reject if L < 5 (pure black = background) or L > 95 (pure white = background)
+            if hair_color[0] < 5 or hair_color[0] > 95:
+                print(f"[DEBUG] Hair {name}: Rejected background (L={hair_color[0]:.1f})")
+                continue
+                
+            hair_samples.append(hair_color)
+            print(f"[DEBUG] Hair {name}: L={hair_color[0]:.1f}, A={hair_color[1]:.1f}, B={hair_color[2]:.1f}")
+        
+        # Intelligent hair sample selection - MAJORITY VOTE APPROACH
+        # Rationale: Blondes have shadows (dark), Brunettes have highlights (light).
+        # We trust the MAJORITY of the samples.
         if hair_samples:
-            # Use median L value to avoid outliers
             l_values = [s[0] for s in hair_samples]
-            median_l = np.median(l_values)
             
-            # Find sample closest to median
-            closest_idx = np.argmin([abs(l - median_l) for l in l_values])
-            hair_l, hair_a, hair_b = hair_samples[closest_idx]
+            # Separate into Dark (<60) and Light (>=60) clusters
+            dark_samples = [s for s in hair_samples if s[0] < 60]
+            light_samples = [s for s in hair_samples if s[0] >= 60]
             
-            print(f"[DEBUG] Hair samples: {len(hair_samples)}, Median L={median_l:.1f}, Selected L={hair_l:.1f}")
+            # Calculate dominant trait
+            is_dark_hair = len(dark_samples) >= len(light_samples)
+            if len(dark_samples) == 0: is_dark_hair = False
+            
+            if is_dark_hair:
+                # Majority are dark -> Likely Brunette/Black hair
+                vals = [s[0] for s in dark_samples]
+                median_val = np.median(vals)
+                closest_idx = np.argmin([abs(v - median_val) for v in vals])
+                hair_l, hair_a, hair_b = dark_samples[closest_idx]
+                print(f"[DEBUG] Hair Strategy: MAJORITY DARK. Range: {min(l_values):.1f}-{max(l_values):.1f}. Selected: L={hair_l:.1f}")
+                
+            else:
+                # Majority are light -> Likely Blonde
+                vals = [s[0] for s in light_samples]
+                median_val = np.median(vals)
+                closest_idx = np.argmin([abs(v - median_val) for v in vals])
+                hair_l, hair_a, hair_b = light_samples[closest_idx]
+                print(f"[DEBUG] Hair Strategy: MAJORITY LIGHT. Range: {min(l_values):.1f}-{max(l_values):.1f}. Selected: L={hair_l:.1f}")
+
         else:
-            hair_l, hair_a, hair_b = (20, 0, 0)
-            print(f"[DEBUG] Hair sampling failed, using fallback")
+            # Fallback: medium brown
+            hair_l, hair_a, hair_b = (40, 5, 10)
+            print(f"[DEBUG] Hair sampling FAILED (all rejected), using fallback medium brown")
         
         # 4. CHROMA CALCULATION
         chroma = math.sqrt(skin_a**2 + skin_b**2)
@@ -184,6 +223,8 @@ class EnhancedFeatureExtractor:
             "skin_b": skin_b,
             "skin_a": skin_a,
             "hair_l": hair_l,
+            "hair_a": hair_a,  # Added for red/auburn detection
+            "hair_b": hair_b,  # Added for completeness
             "eye_l": eye_l,
             "chroma": chroma,
             "photo_quality": {

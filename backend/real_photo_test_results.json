@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Priyanka Chopra",
+    "expected": "Autumn - Deep or True",
+    "actual": "Autumn - Deep Autumn",
+    "season": "Autumn",
+    "subtype": "Deep Autumn",
+    "confidence": 0.95,
+    "undertone": "Warm",
+    "debug": {
+      "skin_l": 71.76470588235294,
+      "skin_b": 6.0,
+      "hair_l": 9.803921568627452,
+      "chroma": 14.317821063276353,
+      "contrast": 49.05882352941177
+    }
+  },
+  {
+    "name": "Hailey Bieber",
+    "expected": "Spring - Light",
+    "actual": "Autumn - True Autumn",
+    "season": "Autumn",
+    "subtype": "True Autumn",
+    "confidence": 0.95,
+    "undertone": "Warm",
+    "debug": {
+      "skin_l": 68.62745098039215,
+      "skin_b": 20.0,
+      "hair_l": 15.294117647058824,
+      "chroma": 24.413111231467404,
+      "contrast": 44.4313725490196
+    }
+  },
+  {
+    "name": "Taylor Swift",
+    "expected": "Summer - Light or Soft",
+    "actual": "Autumn - Deep Autumn",
+    "season": "Autumn",
+    "subtype": "Deep Autumn",
+    "confidence": 0.3,
+    "undertone": "Warm",
+    "debug": {
+      "skin_l": 86.66666666666667,
+      "skin_b": 10.0,
+      "hair_l": 20.0,
+      "chroma": 10.770329614269007,
+      "contrast": 58.43137254901961
+    }
+  },
+  {
+    "name": "Blake Lively",
+    "expected": "Spring - Light",
+    "actual": "Autumn - True Autumn",
+    "season": "Autumn",
+    "subtype": "True Autumn",
+    "confidence": 0.3,
+    "undertone": "Warm",
+    "debug": {
+      "skin_l": 83.92156862745098,
+      "skin_b": 15.0,
+      "hair_l": 22.352941176470587,
+      "chroma": 22.67156809750927,
+      "contrast": 59.84313725490196
+    }
+  },
+  {
+    "name": "Your Photo",
+    "expected": "Unknown - First analysis",
+    "actual": "Autumn - True Autumn",
+    "season": "Autumn",
+    "subtype": "True Autumn",
+    "confidence": 0.85,
+    "undertone": "Warm",
+    "debug": {
+      "skin_l": 79.2156862745098,
+      "skin_b": 15.0,
+      "hair_l": 63.13725490196079,
+      "chroma": 18.601075237738275,
+      "contrast": 42.07843137254902
+    }
+  }
+]

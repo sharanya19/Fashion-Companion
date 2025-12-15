@@ -2,7 +2,7 @@
   {
     "name": "Anne Hathaway",
     "expected": "Winter - True Winter",
-    "actual": "Spring - Light Spring",
+    "actual": "Summer - Light Summer",
     "season_match": false,
     "subtype_match": false,
     "confidence": 0.95
@@ -10,18 +10,18 @@
   {
     "name": "Megan Fox",
     "expected": "Winter - True Winter",
-    "actual": "Autumn - Deep Autumn",
-    "season_match": false,
+    "actual": "Winter - Deep Winter",
+    "season_match": true,
     "subtype_match": false,
-    "confidence": 0.95
+    "confidence": 0.3
   },
   {
     "name": "Katy Perry",
     "expected": "Winter - Bright Winter",
-    "actual": "Spring - Bright Spring",
-    "season_match": false,
-    "subtype_match": false,
-    "confidence": 0.95
+    "actual": "Winter - Bright Winter",
+    "season_match": true,
+    "subtype_match": true,
+    "confidence": 0.3
   },
   {
     "name": "Sandra Bullock",
@@ -50,10 +50,10 @@
   {
     "name": "Emma Stone",
     "expected": "Spring - True Spring",
-    "actual": "Spring - Light Spring",
-    "season_match": true,
+    "actual": "Autumn - True Autumn",
+    "season_match": false,
     "subtype_match": false,
-    "confidence": 0.95
+    "confidence": 0.9
   },
   {
     "name": "Beyonc\u00e9",
@@ -98,33 +98,33 @@
   {
     "name": "Jessica Chastain",
     "expected": "Autumn - True Autumn",
+    "actual": "Autumn - True Autumn",
+    "season_match": true,
+    "subtype_match": true,
+    "confidence": 0.9
+  },
+  {
+    "name": "Drew Barrymore",
+    "expected": "Autumn - Soft Autumn",
     "actual": "Spring - Light Spring",
     "season_match": false,
     "subtype_match": false,
     "confidence": 0.95
   },
   {
-    "name": "Drew Barrymore",
-    "expected": "Autumn - Soft Autumn",
-    "actual": "Autumn - Soft Autumn",
+    "name": "Kim Kardashian",
+    "expected": "Autumn - Deep Autumn",
+    "actual": "Autumn - Deep Autumn",
     "season_match": true,
     "subtype_match": true,
     "confidence": 0.95
   },
   {
-    "name": "Kim Kardashian",
-    "expected": "Autumn - Deep Autumn",
-    "actual": "Winter - Deep Winter",
-    "season_match": false,
-    "subtype_match": false,
-    "confidence": 0.95
-  },
-  {
     "name": "Mindy Kaling",
     "expected": "Autumn - Deep Autumn",
-    "actual": "Autumn - Soft Autumn",
+    "actual": "Autumn - True Autumn",
     "season_match": true,
     "subtype_match": false,
-    "confidence": 0.95
+    "confidence": 0.3
   }
 ]
