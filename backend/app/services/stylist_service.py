@@ -1,153 +1,134 @@
 from typing import List, Dict
 import json
+import random
 import httpx
-import asyncio
 from ..models import User, WardrobeItem
 from ..config import settings
+
+BASE_REQUIRED = [["OnePiece"], ["Top", "Bottom"]]
+ALWAYS_REQUIRED = ["Footwear", "Accessory"]
+OPTIONAL = ["Outerwear"]
 
 class StylistService:
     def __init__(self):
         self.api_key = settings.GEMINI_API_KEY
-        # Use Lite model for speed/efficiency
-        self.api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent?key={self.api_key}"
+        self.api_url = (
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            "gemini-2.0-flash-lite-preview-02-05:generateContent"
+            f"?key={self.api_key}"
+        )
 
+    # --------------------------------------------------
     async def generate_outfit(self, user: User, request: Dict) -> Dict:
-        """
-        Generates an outfit based on user's wardrobe and request context.
-        """
-        if not self.api_key:
-            print("⚠️ Helper: API Key missing. Using fallback.")
-            return self.generate_fallback_outfit(user.wardrobe_items)
+        wardrobe = user.wardrobe_items
+        if not wardrobe:
+            return self._incomplete(["Top", "Bottom", "OnePiece"])
 
-        # 1. Fetch Wardrobe
-        wardrobe_items = user.wardrobe_items
-        if not wardrobe_items:
-            return {"error": "Wardrobe is empty! Upload items first."}
+        # Try Gemini (optional)
+        ai_outfit = None
+        if self.api_key:
+            try:
+                ai_outfit = await self._generate_with_gemini(wardrobe, request)
+            except Exception as e:
+                print("⚠️ Gemini failed:", e)
 
-        # 2. Format Wardrobe Inventory
-        inventory = []
-        for item in wardrobe_items:
-            inventory.append({
-                "item_id": item.id,
-                "category": item.category,
-                "subcategory": item.subcategory,
-                "color_primary": item.color_primary,
-                "color_name": item.color_name,
-                "pattern": item.pattern,
-                "seasonality": item.seasonality, # JSON string
-                "occasion_tags": item.occasion_tags, # JSON string
-                "match_level": item.match_level
-            })
-            
-        # 3. User Profile
-        analysis = user.style_analysis
-        profile_summary = {
-            "season": analysis.season if analysis else "Unknown",
-            "subtype": analysis.season_subtype if analysis else "Unknown",
-            "undertone": analysis.undertone if analysis else "Unknown"
-        }
+        # Always enforce completion
+        return self._force_complete(ai_outfit, wardrobe)
 
-        # 4. Construct MASTER PROMPT
+    # --------------------------------------------------
+    async def _generate_with_gemini(self, wardrobe, request):
+        inventory = [
+            {"item_id": i.id, "category": i.category, "match_level": i.match_level}
+            for i in wardrobe
+        ]
+
         prompt = f"""
-        You are a professional AI Fashion Stylist.
-        
-        CONTEXT:
-        User Profile: {json.dumps(profile_summary)}
-        Request: {json.dumps(request)}
-        
-        WARDROBE INVENTORY:
-        {json.dumps(inventory)}
-        
-        TASK:
-        Generate a complete outfit recommendation using ONLY the items in the wardrobe inventory.
-        
-        RULES:
-        1. Respect the user's Color Season ({profile_summary['season']}). Prefer 'best' match items.
-        2. Account for the user's request (Occasion: {request.get('occasion')}, Weather: {request.get('weather')}).
-        3. Do NOT hallucinate items. If a category is missing (e.g. no shoes), explicitly state it in 'missing_items'.
-        4. Return strictly valid JSON.
-        
-        OUTPUT FORMAT:
-        {{
-            "outfit_name": "Name of look",
-            "items": [
-                {{
-                    "item_id": 123,
-                    "reason": "Why this item works..."
-                }}
-            ],
-            "explanation": "Why this outfit works for the occasion and season...",
-            "missing_categories": ["Shoes", "Bag"]
-        }}
-        """
+You are a professional fashion stylist.
 
-        # 5. Call LLM
+WARDROBE:
+{json.dumps(inventory)}
+
+REQUEST:
+{json.dumps(request)}
+
+RULES:
+- Use ONLY wardrobe items
+- Build a COMPLETE outfit
+- Either OnePiece OR Top + Bottom
+- MUST include Footwear and Accessory
+- JSON only
+"""
+
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"response_mime_type": "application/json"}
+            "generationConfig": {"response_mime_type": "application/json"},
         }
 
-        max_retries = 3
-        
-        async with httpx.AsyncClient() as client:
-            for attempt in range(max_retries + 1):
-                try:
-                    response = await client.post(self.api_url, json=payload, timeout=60.0)
-                    
-                    if response.status_code == 429:
-                        if attempt < max_retries:
-                            wait = 2 * (2 ** attempt)
-                            print(f"Stylist Rate Limit. Waiting {wait}s...")
-                            await asyncio.sleep(wait)
-                            continue
-                    
-                    response.raise_for_status()
-                    result = response.json()
-                    
-                    raw_json = result["candidates"][0]["content"]["parts"][0]["text"]
-                    raw_json = raw_json.replace("```json", "").replace("```", "").strip()
-                    return json.loads(raw_json)
-                    
-                except Exception as e:
-                    if attempt == max_retries:
-                        print(f"Stylist Error: {e}")
-                        return self.generate_fallback_outfit(wardrobe_items)
-                
-    def generate_fallback_outfit(self, items: List[WardrobeItem]) -> Dict:
-        """
-        Simple rule-based fallback when AI is offline.
-        """
-        import random
-        
-        tops = [i for i in items if i.category == 'Top']
-        bottoms = [i for i in items if i.category == 'Bottom']
-        shoes = [i for i in items if i.category == 'Footwear']
-        
-        if not tops or not bottoms:
-            return {
-                "outfit_name": "Wardrobe Audit Required",
-                "items": [],
-                "explanation": "Not enough items (Tops/Bottoms) for auto-generation. Please upload more clothes!",
-                "missing_categories": ["Tops", "Bottoms"]
-            }
-            
-        # Simple Random Selection
-        top = random.choice(tops)
-        bottom = random.choice(bottoms)
-        outfit_items = [
-            {"item_id": top.id, "reason": "Selected from your wardrobe (Offline Mode)"},
-            {"item_id": bottom.id, "reason": "Selected from your wardrobe (Offline Mode)"}
-        ]
-        
-        if shoes:
-            shore_item = random.choice(shoes)
-            outfit_items.append({"item_id": shore_item.id, "reason": "Matching footwear"})
-            
+        async with httpx.AsyncClient(timeout=60) as client:
+            res = await client.post(self.api_url, json=payload)
+            res.raise_for_status()
+            raw = res.json()["candidates"][0]["content"]["parts"][0]["text"]
+
+        return json.loads(raw.replace("```json", "").replace("```", "").strip())
+
+    # --------------------------------------------------
+    def _force_complete(self, outfit: Dict | None, wardrobe: List[WardrobeItem]) -> Dict:
+        items = outfit["items"] if outfit and "items" in outfit else []
+        selected_ids = {i["item_id"] for i in items}
+        selected_items = [i for i in wardrobe if i.id in selected_ids]
+        categories = {i.category for i in selected_items}
+
+        def pick(cat):
+            pool = [i for i in wardrobe if i.category == cat and i.id not in selected_ids]
+            return random.choice(pool) if pool else None
+
+        final_items = list(items)
+        missing = []
+
+        # ---- Base outfit ----
+        if "OnePiece" not in categories:
+            if not {"Top", "Bottom"}.issubset(categories):
+                top = pick("Top")
+                bottom = pick("Bottom")
+                if top and bottom:
+                    final_items += [
+                        {"item_id": top.id, "reason": "Base top"},
+                        {"item_id": bottom.id, "reason": "Base bottom"},
+                    ]
+                else:
+                    missing += ["Top", "Bottom"]
+
+        # ---- Required extras ----
+        for cat in ALWAYS_REQUIRED:
+            if cat not in categories:
+                item = pick(cat)
+                if item:
+                    final_items.append({"item_id": item.id, "reason": f"{cat} match"})
+                else:
+                    missing.append(cat)
+
+        # ---- Optional ----
+        for cat in OPTIONAL:
+            if cat not in categories:
+                item = pick(cat)
+                if item:
+                    final_items.append({"item_id": item.id, "reason": f"{cat} layer"})
+
         return {
-            "outfit_name": "Offline Shuffle",
-            "items": outfit_items,
-            "explanation": "AI Brain is offline. Here is a random shuffle of your items! Add GEMINI_API_KEY for smart recommendations.",
-            "missing_categories": []
+            "outfit_name": outfit.get("outfit_name", "Styled Outfit") if outfit else "Styled Outfit",
+            "items": final_items,
+            "explanation": "Complete outfit assembled from your wardrobe.",
+            "missing_categories": list(set(missing)),
         }
+
+    # --------------------------------------------------
+    def _incomplete(self, cats):
+        return {
+            "outfit_name": "Incomplete Wardrobe",
+            "items": [],
+            "explanation": "Please upload missing items.",
+            "missing_categories": cats,
+        }
+
 
 stylist = StylistService()

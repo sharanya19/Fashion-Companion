@@ -8,3 +8,8 @@ python-jose[cryptography]
 passlib[bcrypt]
 httpx
 python-dotenv
+pillow
+opencv-python
+mediapipe
+scikit-learn
+numpy
