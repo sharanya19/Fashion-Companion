@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Wardrobe from './pages/Wardrobe';
+import Stylist from './pages/Stylist';
 import Chat from './pages/Chat';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Dashboard />} />
           <Route path="/wardrobe" element={<Wardrobe />} />
+          <Route path="/stylist" element={<Stylist />} />
           <Route path="/chat" element={<Chat />} />
         </Routes>
       </Layout>

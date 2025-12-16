@@ -74,15 +74,29 @@ class AnalysisResponse(BaseModel):
         from_attributes = True
 
 # Wardrobe
+# Wardrobe
 class WardrobeItemCreate(BaseModel):
     category: str
-    color_hex: Optional[str] = None
-    color_name: Optional[str] = None
+    subcategory: Optional[str] = None
+    type: Optional[str] = None
+    
+    color_primary: Optional[str] = None
+    color_secondary: Optional[str] = None
+    pattern: Optional[str] = None
+    fabric: Optional[str] = None
+    fit: Optional[str] = None
+    
+    # We accept lists in API, but backend might serialize them
+    seasonality: Optional[List[str]] = []
+    occasion_tags: Optional[List[str]] = []
+    style_tags: Optional[List[str]] = []
 
 class WardrobeItemResponse(WardrobeItemCreate):
     id: int
     file_path: str
     match_level: str
+    ai_metadata: Optional[Dict[str, Any]] = None # Return full AI analysis
+    
     class Config:
         from_attributes = True
 
@@ -98,3 +112,20 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     conversation_id: int
+
+# Outfits
+class OutfitGenRequest(BaseModel):
+    occasion: str
+    weather: Optional[str] = "Neutral"
+    vibe: Optional[str] = "Smart Casual"
+
+class OutfitItem(BaseModel):
+    item_id: int
+    reason: str
+
+class OutfitGenResponse(BaseModel):
+    outfit_name: str
+    items: List[OutfitItem]
+    explanation: str
+    missing_categories: Optional[List[str]] = []
+

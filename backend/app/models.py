@@ -61,11 +61,28 @@ class WardrobeItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     file_path = Column(String)
+    
+    # Core Classification
     category = Column(String) # Top, Bottom, etc.
-    color_hex = Column(String, nullable=True)
-    color_name = Column(String, nullable=True)
+    subcategory = Column(String, nullable=True) # Shirt, Jeans, Dress
+    type = Column(String, nullable=True) # Sleeveless, Maxi, etc.
+    
+    # Attributes
+    color_primary = Column(String, nullable=True) # Hex
+    color_secondary = Column(String, nullable=True) # Hex
+    color_name = Column(String, nullable=True) # Human readable name
     pattern = Column(String, nullable=True)
+    fabric = Column(String, nullable=True)
+    fit = Column(String, nullable=True)
+    
+    # Analysis & Tags (Stored as JSON Strings)
+    seasonality = Column(Text, nullable=True) # ["Spring", "Autumn"]
+    occasion_tags = Column(Text, nullable=True) # ["Work", "Party"]
+    style_tags = Column(Text, nullable=True) # ["Casual", "Boho"]
+    
+    # AI Scoring
     match_level = Column(String, default="neutral") # best, neutral, worst
+    ai_metadata = Column(Text, nullable=True) # Validated JSON from Vision AI
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="wardrobe_items")

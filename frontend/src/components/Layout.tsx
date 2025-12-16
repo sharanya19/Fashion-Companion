@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, Navigate } from 'react-router-dom';
-import { Home, Shirt, MessageSquare, LogOut } from 'lucide-react';
+import { Home, Shirt, MessageSquare, LogOut, Sparkles } from 'lucide-react';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     const location = useLocation();
@@ -39,6 +39,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                     <NavLink to="/" icon={<Home size={20} />} label="Dashboard" active={location.pathname === '/'} />
                     <NavLink to="/wardrobe" icon={<Shirt size={20} />} label="Wardrobe" active={location.pathname === '/wardrobe'} />
+                    <NavLink to="/stylist" icon={<Sparkles size={20} />} label="Generator" active={location.pathname === '/stylist'} />
                     <NavLink to="/chat" icon={<MessageSquare size={20} />} label="Stylist Chat" active={location.pathname === '/chat'} />
                 </nav>
 
