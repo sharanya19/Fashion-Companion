@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../api/client';
-import { Send, User, Bot } from 'lucide-react';
+import { Send, Bot } from 'lucide-react';
 
 interface Message {
     role: string;

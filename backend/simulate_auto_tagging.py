@@ -6,12 +6,10 @@ from app.config import settings
 
 # specific images from user metadata
 FILES_TO_TEST = [
-    "uploaded_image_0_1765811734564.jpg",
-    "uploaded_image_1_1765811734564.jpg",
-    "uploaded_image_2_1765811734564.jpg",
-    "uploaded_image_3_1765811734564.jpg"
+    "uploaded_image_0_1765968355676.png",
+    "uploaded_image_1_1765968355676.png"
 ]
-UPLOAD_DIR = "C:/Users/somis/.gemini/antigravity/brain/6f449b4d-55ec-4311-864c-dab63564af4f"
+UPLOAD_DIR = "C:/Users/somis/.gemini/antigravity/brain/14745207-71d2-4df2-99f2-89b20fb63e91"
 
 async def run_simulation():
     print(f"🔬 Starting Auto-Tagging Simulation...")

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api, { analyzePhoto } from '../api/client';
-import { Palette, Sparkles, AlertCircle, Upload, Camera, CheckCircle, Info, Eye, Smile } from 'lucide-react';
+import { Palette, Sparkles, AlertCircle, Upload, Camera, CheckCircle, Info, Eye } from 'lucide-react';
 
 interface ColorItem {
     hex: string;
