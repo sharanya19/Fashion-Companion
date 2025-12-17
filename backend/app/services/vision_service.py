@@ -54,11 +54,42 @@ OUTPUT:
         }
     }
 
-    async with httpx.AsyncClient(timeout=10) as client:
-        res = await client.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent?key={settings.GEMINI_API_KEY}",
-            json=payload
-        )
-
-    raw = res.json()["candidates"][0]["content"]["parts"][0]["text"]
-    return json.loads(raw.replace("```json", "").replace("```", "").strip())
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            res = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent?key={settings.GEMINI_API_KEY}",
+                json=payload
+            )
+        
+        # Check response status before parsing JSON
+        res.raise_for_status()
+        
+        # Safely parse response JSON
+        response_data = res.json()
+        if "candidates" not in response_data or not response_data["candidates"]:
+            print("⚠️ Gemini API returned empty candidates")
+            return None
+        
+        candidate = response_data["candidates"][0]
+        if "content" not in candidate or "parts" not in candidate["content"]:
+            print("⚠️ Gemini API response missing content/parts")
+            return None
+        
+        raw = candidate["content"]["parts"][0].get("text", "")
+        if not raw:
+            print("⚠️ Gemini API returned empty text")
+            return None
+        
+        # Clean and parse JSON response
+        cleaned = raw.replace("```json", "").replace("```", "").strip()
+        return json.loads(cleaned)
+        
+    except httpx.HTTPStatusError as e:
+        print(f"⚠️ Gemini API HTTP error: {e.response.status_code} - {e.response.text}")
+        return None
+    except (KeyError, IndexError, json.JSONDecodeError) as e:
+        print(f"⚠️ Gemini API response parsing error: {e}")
+        return None
+    except Exception as e:
+        print(f"⚠️ Gemini API request failed: {e}")
+        return None

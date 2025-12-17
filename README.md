@@ -52,7 +52,13 @@ Runs on: `http://localhost:5173`
 5. **Chat**: Talk to the style assistant.
 
 ## Environment Variables
-Check `backend/.env` to configure your Grok API Key:
+Create a `backend/.env` file to configure API keys (never commit this file!):
 ```
-XAI_API_KEY=your_key_here
+# Grok API (XAI) - Required for stylist chat
+XAI_API_KEY=your_grok_api_key_here
+
+# Google Gemini API - Required for wardrobe auto-tagging
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
+
+**Security Note:** API keys are loaded from environment variables. The application will work without them, but some features (AI tagging, stylist chat) will be limited. Never commit actual API keys to version control!

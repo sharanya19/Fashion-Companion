@@ -67,9 +67,27 @@ RULES:
         async with httpx.AsyncClient(timeout=60) as client:
             res = await client.post(self.api_url, json=payload)
             res.raise_for_status()
-            raw = res.json()["candidates"][0]["content"]["parts"][0]["text"]
-
-        return json.loads(raw.replace("```json", "").replace("```", "").strip())
+            
+            # Safely parse response JSON with error handling
+            try:
+                response_data = res.json()
+                if "candidates" not in response_data or not response_data["candidates"]:
+                    raise ValueError("Gemini API returned empty candidates")
+                
+                candidate = response_data["candidates"][0]
+                if "content" not in candidate or "parts" not in candidate["content"]:
+                    raise ValueError("Gemini API response missing content/parts")
+                
+                raw = candidate["content"]["parts"][0].get("text", "")
+                if not raw:
+                    raise ValueError("Gemini API returned empty text")
+                
+                # Clean and parse JSON response
+                cleaned = raw.replace("```json", "").replace("```", "").strip()
+                return json.loads(cleaned)
+            except (KeyError, IndexError, json.JSONDecodeError, ValueError) as e:
+                print(f"⚠️ Gemini API response parsing error: {e}")
+                raise
 
     # --------------------------------------------------
     def _force_complete(self, outfit: Dict | None, wardrobe: List[WardrobeItem]) -> Dict:

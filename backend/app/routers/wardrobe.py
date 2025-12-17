@@ -4,6 +4,7 @@ from .. import models, schemas, database
 from .auth import get_current_user
 from ..services import wardrobe_logic, vision_service
 from ..services.clothing_normalizer import normalize_category, normalize_text
+from ..services.image_category_detector import detect_category_from_image
 import shutil
 import os
 import uuid
@@ -74,38 +75,59 @@ async def upload_wardrobe_item(
         ai_sub = ai_metadata.get("subcategory") or ai_metadata.get("item_type")
 
     # -------------------------
-    # 2️⃣ CATEGORY (Gemini → Filename)
+    # 2️⃣ CATEGORY (Image Detection → AI → Filename)
     # -------------------------
     final_category = "Uncategorized"
     decision_meta = {}
 
-    semantic_inputs = []
+    # Tier 1: Image-based detection (HIGH priority)
+    image_detected_category = detect_category_from_image(file_path)
+    if image_detected_category and image_detected_category in ALLOWED_CATEGORIES:
+        final_category = image_detected_category
+        decision_meta["category"] = {
+            "value": final_category,
+            "source": "image",
+            "confidence": CONF_HIGH,
+        }
 
-    if ai_metadata:
-        semantic_inputs.extend([
+    # Tier 2: AI Vision with normalization (MEDIUM priority)
+    if final_category == "Uncategorized" and ai_metadata:
+        semantic_inputs = [
             ai_metadata.get("category"),
             ai_metadata.get("subcategory"),
             ai_metadata.get("type"),
             ai_metadata.get("item_type"),
             ai_metadata.get("garment"),
-        ])
+        ]
+        normalized = normalize_category(*semantic_inputs)
+        if normalized in ALLOWED_CATEGORIES:
+            final_category = normalized
+            decision_meta["category"] = {
+                "value": final_category,
+                "source": SRC_AI,
+                "confidence": "medium",
+            }
 
-    normalized = normalize_category(*semantic_inputs)
-
-    if normalized in ALLOWED_CATEGORIES:
-        final_category = normalized
-        decision_meta["category"] = {
-            "value": final_category,
-            "source": SRC_AI,
-            "confidence": CONF_HIGH,
-        }
-
-    # Filename fallback
+    # Tier 3: Filename inference (LOW priority)
     if final_category == "Uncategorized":
         fname = (file.filename or "").lower()
         normalized = normalize_category(fname)
         if normalized in ALLOWED_CATEGORIES:
             final_category = normalized
+            decision_meta["category"] = {
+                "value": final_category,
+                "source": "filename",
+                "confidence": "low",
+            }
+
+    # Final fallback: use user-provided category if still uncategorized
+    if final_category == "Uncategorized" and category and category in ALLOWED_CATEGORIES:
+        final_category = category
+        decision_meta["category"] = {
+            "value": final_category,
+            "source": "user_input",
+            "confidence": "low",
+        }
 
     final_subcategory = normalize_text(ai_sub) if ai_sub else None
 
